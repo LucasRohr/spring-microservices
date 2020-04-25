@@ -34,6 +34,8 @@ public class GalleryController {
         Gallery gallery = new Gallery();
         gallery.setId(id);
 
+        System.out.println("id " + id);
+
         List images = restTemplate.getForObject("http://image-service/images", List.class);
         gallery.setImages(images);
         return gallery;
