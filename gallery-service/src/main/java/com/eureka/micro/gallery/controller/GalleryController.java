@@ -1,6 +1,9 @@
 package com.eureka.micro.gallery.controller;
 
 import com.eureka.micro.gallery.domain.Gallery;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +17,8 @@ import java.util.List;
 @RestController
 @RequestMapping("")
 public class GalleryController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GalleryController.class);
 
     @Autowired
     Environment env;
@@ -29,8 +34,11 @@ public class GalleryController {
         return "Hello from Gallery Service running at port: " + env.getProperty("local.server.port");
     }
 
+    @HystrixCommand(fallbackMethod = "getGalleryFallback")
     @GetMapping("/{id}")
     public Gallery getGallery(@PathVariable("id") final Long id) {
+        LOGGER.info("Creating gallery object ... ");
+
         Gallery gallery = new Gallery();
         gallery.setId(id);
 
@@ -38,7 +46,13 @@ public class GalleryController {
 
         List images = restTemplate.getForObject("http://image-service/images", List.class);
         gallery.setImages(images);
+
+        LOGGER.info("Returning images ... ");
         return gallery;
+    }
+
+    public Gallery getGalleryFallback(Long galleryId, Throwable hystrixCommand) {
+        return new Gallery(galleryId);
     }
 
     // -------- Admin Area --------

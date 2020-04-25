@@ -12,4 +12,8 @@ import java.util.List;
 public class Gallery {
     private Long id;
     private List images;
+
+    public Gallery(Long id) {
+        this.id = id;
+    }
 }
